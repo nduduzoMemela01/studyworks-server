@@ -19,6 +19,10 @@ client = groq.Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 app = Flask(__name__)
 
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "API is live!"})
+
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True)
