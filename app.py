@@ -26,12 +26,16 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True)
+    
+    print(f"Received data: {data}")
 
     # Validate request format
     if not data or "content" not in data or "senderRole" not in data:
         return jsonify({"error": "Invalid request format"}), 400
 
     user_message = data["content"]
+    
+    print(f"User message: {user_message}")
 
     # Call Groq DeepSeek AI
     response = client.chat.completions.create(
@@ -40,6 +44,8 @@ def chat():
     )
 
     ai_response_content = response.choices[0].message.content
+    ai_response_content = extract_content(ai_response_content)
+    print(f"AI response content: {ai_response_content}")
 
     # Construct expected AIResponse format for Android
     ai_response = {
