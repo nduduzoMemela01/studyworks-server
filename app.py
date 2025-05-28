@@ -1,8 +1,9 @@
+from flask import Flask, request, jsonify
 import os
 import groq
-from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-import re
+import uuid
+from datetime import datetime
 
 def extract_content(raw_response):
     closing_tag = "</think>\n\n"
@@ -12,6 +13,7 @@ def extract_content(raw_response):
         return raw_response[index + len(closing_tag):].strip()
     return raw_response.strip()
 
+# Load API key
 load_dotenv()
 client = groq.Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -19,20 +21,29 @@ app = Flask(__name__)
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.json
-    user_message = data.get("message", "")
+    data = request.get_json(silent=True)
 
-    if not user_message:
-        return jsonify({"error": "Message is required"}), 400
+    # Validate request format
+    if not data or "content" not in data or "senderRole" not in data:
+        return jsonify({"error": "Invalid request format"}), 400
 
+    user_message = data["content"]
+
+    # Call Groq DeepSeek AI
     response = client.chat.completions.create(
         model="deepseek-r1-distill-llama-70b",
         messages=[{"role": "user", "content": user_message}]
     )
-    
-    response = response.choices[0].message.content
 
-    return jsonify({"response": extract_content(response)})
+    ai_response_content = response.choices[0].message.content
+
+    # Construct expected AIResponse format for Android
+    ai_response = {
+        "responseContent": ai_response_content,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+    return jsonify(ai_response)
 
 if __name__ == "__main__":
     app.run(debug=True)
