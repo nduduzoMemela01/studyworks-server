@@ -29,11 +29,11 @@ def chat():
     
     print(f"Received data: {data}")
 
-    # # Validate request format
-    # if not data or "content" not in data:
-    #     return jsonify({"error": "Invalid request format"}), 400
+    # Validate request format
+    if not data or "messageContent" not in data:
+        return jsonify({"error": "Invalid request format"}), 400
 
-    user_message = data["content"]
+    user_message = data["messageContent"]
     
     print(f"User message: {user_message}")
 
